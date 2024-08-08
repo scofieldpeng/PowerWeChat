@@ -57,8 +57,6 @@ func (comp *Client) Session(ctx context.Context, code string) (*response.Respons
 func (comp *Client) CheckSessionValid(ctx context.Context, openid, sessionKey string) (*response2.ResponseOpenPlatform, error) {
 	result := &response2.ResponseOpenPlatform{}
 
-	config := (*comp.App).GetConfig()
-	componentConfig := comp.component.GetConfig()
 	token := comp.component.GetComponent("AccessToken").(*auth.AccessToken)
 	componentToken, err := token.GetToken(false)
 
@@ -66,9 +64,10 @@ func (comp *Client) CheckSessionValid(ctx context.Context, openid, sessionKey st
 	h.Write([]byte(sessionKey))
 
 	query := &object.StringMap{
-		"openid":     openid,
-		"signature":  string(h.Sum(nil)),
-		"sig_method": "hmac_sha256",
+		"openid":                  openid,
+		"signature":               string(h.Sum(nil)),
+		"sig_method":              "hmac_sha256",
+		"authorizer_access_token": componentToken.AuthorizerAccessToken,
 	}
 
 	_, err = comp.BaseClient.HttpGet(ctx, "wxa/checksession", query, nil, result)
